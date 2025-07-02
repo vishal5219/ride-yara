@@ -1,0 +1,84 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: uber
+          POSTGRES_PASSWORD: uberpass
+          POSTGRES_DB: uberdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+      zookeeper:
+        image: wurstmeister/zookeeper:3.4.6
+        ports:
+          - 2181:2181
+      kafka:
+        image: wurstmeister/kafka:2.12-2.2.1
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_ADVERTISED_HOST_NAME: kafka
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install and test user-service
+        run: |
+          cd user-service
+          npm install
+          npm run build || true
+      - name: Install and test driver-service
+        run: |
+          cd driver-service
+          npm install
+          npm run build || true
+      - name: Install and test booking-service
+        run: |
+          cd booking-service
+          npm install
+          npm run build || true
+      - name: Install and test payment-service
+        run: |
+          cd payment-service
+          npm install
+          npm run build || true
+      - name: Install and test notification-service
+        run: |
+          cd notification-service
+          npm install
+          npm run build || true
+      - name: Install and test api-gateway
+        run: |
+          cd api-gateway
+          npm install
+          npm run build || true
+      - name: Install and test frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+      - name: Docker Compose Build
+        run: |
+          docker-compose build 

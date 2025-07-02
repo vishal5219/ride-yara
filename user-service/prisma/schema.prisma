@@ -1,0 +1,48 @@
+// Prisma schema for Uber-like app
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String   @unique
+  password  String
+  role      String
+  rides     Ride[]   @relation("UserRides")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Driver {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  phone         String   @unique
+  vehicleNumber String
+  status        String
+  rides         Ride[]   @relation("DriverRides")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Ride {
+  id          String   @id @default(uuid())
+  user        User     @relation("UserRides", fields: [userId], references: [id])
+  userId      String
+  driver      Driver?  @relation("DriverRides", fields: [driverId], references: [id])
+  driverId    String?
+  origin      String
+  destination String
+  status      String
+  fare        Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+} 
