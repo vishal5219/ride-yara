@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const driverController = require('../controllers/driverController');
-const auth = require('../middlewares/auth');
+const { authenticateToken } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
 // const auth = require('../middlewares/auth'); // To be implemented
 
@@ -158,11 +158,11 @@ const validate = require('../middlewares/validate');
 
 router.post('/register', validate.validateRegister, driverController.register);
 router.post('/login', driverController.login);
-router.put('/status', auth, validate.validateStatus, driverController.updateStatus);
-router.post('/accept-ride', auth, driverController.acceptRide);
-router.post('/reject-ride', auth, driverController.rejectRide);
-router.get('/profile', auth, driverController.getProfile);
-router.get('/history', auth, driverController.getHistory);
-router.get('/ratings', auth, driverController.getRatings);
+router.put('/status', authenticateToken, validate.validateStatus, driverController.updateStatus);
+router.post('/accept-ride', authenticateToken, driverController.acceptRide);
+router.post('/reject-ride', authenticateToken, driverController.rejectRide);
+router.get('/profile', authenticateToken, driverController.getProfile);
+router.get('/history', authenticateToken, driverController.getHistory);
+router.get('/ratings', authenticateToken, driverController.getRatings);
 
 module.exports = router; 

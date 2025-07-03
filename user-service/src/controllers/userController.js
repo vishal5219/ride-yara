@@ -1,13 +1,21 @@
 const UserService = require('../services/userService');
 
 exports.register = async (req, res) => {
-  // TODO: Implement user registration
-  res.json({ message: 'User registered' });
+  try {
+    const user = await UserService.register(req.body);
+    res.status(201).json({ user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 };
 
 exports.login = async (req, res) => {
-  // TODO: Implement user login
-  res.json({ message: 'User logged in' });
+  try {
+    const { user, token } = await UserService.login(req.body);
+    res.json({ user, token });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 };
 
 exports.getProfile = async (req, res) => {
