@@ -1,10 +1,10 @@
 import React from 'react';
 import { Typography, Box, Alert } from '@mui/material';
-import { Form, Input, Button } from 'antd';
+import { Input, Button } from 'antd';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { initiatePaymentThunk, verifyPaymentThunk, refundPaymentThunk, clearPaymentState } from '../store/paymentSlice';
+import { initiatePaymentThunk, refundPaymentThunk } from '../store/paymentSlice';
 
 function Payment() {
   const dispatch = useDispatch();
