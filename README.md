@@ -145,3 +145,82 @@ kubectl apply -f infra/k8s/api-gateway-ingress.yaml
 
 ## License
 MIT 
+
+## RUN IN LOCAL
+# Uber Clone - Microservices Architecture
+
+## Local Development Setup
+
+### Prerequisites
+- Node.js (v18 or higher)
+- PostgreSQL
+- Redis
+- Kafka & Zookeeper
+- npm or yarn
+
+### Quick Start
+
+1. **Set up Prisma (Database)**
+   ```bash
+   bash setup-prisma.sh
+   ```
+
+2. **Start all services**
+   ```bash
+   bash start-all-services.sh
+   ```
+
+### Manual Setup
+
+If you prefer to set up services manually:
+
+1. **Install dependencies and generate Prisma client for each service:**
+   ```bash
+   cd user-service
+   npm install
+   npx prisma generate
+   npm run dev
+   ```
+
+2. **Repeat for other services:**
+   - driver-service
+   - booking-service
+   - payment-service
+   - notification-service
+   - api-gateway
+
+3. **Start the frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
+
+### Environment Variables
+
+Make sure each service has the correct environment variables in their `.env` files:
+
+```env
+PORT=4000
+DB_HOST=localhost
+DB_USER=uber
+DB_PASS=uberpass
+DB_NAME=uberdb
+REDIS_HOST=localhost
+KAFKA_BROKER=localhost:9092
+JWT_SECRET=your_secret_key
+```
+
+### Troubleshooting
+
+- **Prisma Error**: Run `npx prisma generate` in each service directory
+- **Database Connection**: Ensure PostgreSQL is running and accessible
+- **Port Conflicts**: Check if ports are already in use
+
+## Docker Setup
+
+To run everything with Docker:
+
+```bash
+docker-compose up --build
+``` 

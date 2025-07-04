@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bookingController = require('../controllers/bookingController');
-const auth = require('../middlewares/auth');
+const { authenticateToken } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
 // const auth = require('../middlewares/auth'); // To be implemented
 
@@ -50,7 +50,7 @@ const validate = require('../middlewares/validate');
  *         description: Unauthorized
  */
 
-router.post('/', auth, validate.validateBooking, bookingController.createBooking);
+router.post('/', authenticateToken, validate.validateBooking, bookingController.createBooking);
 
 /**
  * @swagger
@@ -73,7 +73,7 @@ router.post('/', auth, validate.validateBooking, bookingController.createBooking
  *         description: Unauthorized
  */
 
-router.get('/', auth, bookingController.listBookings);
+router.get('/', authenticateToken, bookingController.listBookings);
 
 /**
  * @swagger
@@ -103,7 +103,7 @@ router.get('/', auth, bookingController.listBookings);
  *         description: Unauthorized
  */
 
-router.get('/:id', auth, bookingController.getBooking);
+router.get('/:id', authenticateToken, bookingController.getBooking);
 
 /**
  * @swagger
@@ -153,7 +153,7 @@ router.get('/:id', auth, bookingController.getBooking);
  *         description: Booking not found
  */
 
-router.put('/:id', auth, validate.validateUpdate, bookingController.updateBooking);
+router.put('/:id', authenticateToken, validate.validateUpdate, bookingController.updateBooking);
 
 /**
  * @swagger
@@ -179,7 +179,7 @@ router.put('/:id', auth, validate.validateUpdate, bookingController.updateBookin
  *         description: Booking not found
  */
 
-router.delete('/:id', auth, bookingController.cancelBooking);
+router.delete('/:id', authenticateToken, bookingController.cancelBooking);
 
 /**
  * @swagger
@@ -205,7 +205,7 @@ router.delete('/:id', auth, bookingController.cancelBooking);
  *         description: Booking not found
  */
 
-router.post('/:id/assign-driver', auth, bookingController.assignDriver);
+router.post('/:id/assign-driver', authenticateToken, bookingController.assignDriver);
 
 /**
  * @swagger
@@ -231,7 +231,7 @@ router.post('/:id/assign-driver', auth, bookingController.assignDriver);
  *         description: Booking not found
  */
 
-router.get('/:id/status', auth, bookingController.getBookingStatus);
+router.get('/:id/status', authenticateToken, bookingController.getBookingStatus);
 
 /**
  * @swagger

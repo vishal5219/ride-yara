@@ -6,8 +6,17 @@ SERVICES=(user-service driver-service booking-service payment-service notificati
 
 for SERVICE in "${SERVICES[@]}"
 do
+  echo "Setting up $SERVICE..."
+  cd $SERVICE
+  npm install
+  # Generate Prisma client if prisma directory exists
+  if [ -d "prisma" ]; then
+    echo "Generating Prisma client for $SERVICE..."
+    npx prisma generate
+  fi
   echo "Starting $SERVICE..."
-  (cd $SERVICE && npm install && npx nodemon src/index.js) &
+  npx nodemon src/index.js &
+  cd ..
 done
 
 echo "All services are starting in the background." 
