@@ -1,6 +1,4 @@
 const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger.json'); // Place your OpenAPI spec here
 
 const options = {
   definition: {
@@ -26,6 +24,4 @@ const options = {
 
 const specs = swaggerJsdoc(options);
 
-module.exports = (app) => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-}; 
+module.exports = specs; 

@@ -83,11 +83,8 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 // Health check
 app.get('/health', (req, res) => res.send('OK'));
 
-// Booking routes
-app.post('/api/bookings', auth, validateBooking, bookingRoutes);
-app.get('/api/bookings', auth, bookingRoutes);
-app.get('/api/bookings/:id', auth, bookingRoutes);
-app.put('/api/bookings/:id', auth, validateUpdate, bookingRoutes);
+// Mount booking routes
+app.use('/api/bookings', bookingRoutes);
 
 // Error handler
 app.use(errorHandler);

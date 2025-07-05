@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:14
+    image: postgres:15-alpine
     restart: always
     environment:
       POSTGRES_USER: uber
@@ -8,128 +8,175 @@ services:
       POSTGRES_DB: uberdb
     ports:
       - '5432:5432'
-    volumes:
-      - ./infra/postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uber -d uberdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:7
+    image: redis:7-alpine
     restart: always
     ports:
       - '6379:6379'
-    volumes:
-      - ./infra/redis/data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
+    image: bitnami/zookeeper:3.9
+    restart: always
     ports:
       - '2181:2181'
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: yes
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
-    image: confluentinc/cp-kafka:7.4.0
+    image: bitnami/kafka:3.5
+    restart: always
     ports:
       - '9092:9092'
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      ALLOW_PLAINTEXT_LISTENER: yes
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   user-service:
     build: ./user-service
+    restart: always
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
       - DB_USER=uber
       - DB_PASS=uberpass
       - DB_NAME=uberdb
+      - DATABASE_URL=postgresql://uber:uberpass@postgres:5432/uberdb
       - REDIS_HOST=redis
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=your_jwt_secret_key_here
     ports:
       - '4001:4000'
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   driver-service:
     build: ./driver-service
+    restart: always
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
       - DB_USER=uber
       - DB_PASS=uberpass
       - DB_NAME=uberdb
+      - DATABASE_URL=postgresql://uber:uberpass@postgres:5432/uberdb
       - REDIS_HOST=redis
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=your_jwt_secret_key_here
     ports:
       - '4002:4000'
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   booking-service:
     build: ./booking-service
+    restart: always
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
       - DB_USER=uber
       - DB_PASS=uberpass
       - DB_NAME=uberdb
+      - DATABASE_URL=postgresql://uber:uberpass@postgres:5432/uberdb
       - REDIS_HOST=redis
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=your_jwt_secret_key_here
     ports:
       - '4003:4000'
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   payment-service:
     build: ./payment-service
+    restart: always
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
       - DB_USER=uber
       - DB_PASS=uberpass
       - DB_NAME=uberdb
+      - DATABASE_URL=postgresql://uber:uberpass@postgres:5432/uberdb
       - REDIS_HOST=redis
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=your_jwt_secret_key_here
       - RAZORPAY_KEY_ID=your_razorpay_key_id
       - RAZORPAY_KEY_SECRET=your_razorpay_key_secret
     ports:
       - '4004:4000'
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   notification-service:
     build: ./notification-service
+    restart: always
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
       - DB_USER=uber
       - DB_PASS=uberpass
       - DB_NAME=uberdb
+      - DATABASE_URL=postgresql://uber:uberpass@postgres:5432/uberdb
       - REDIS_HOST=redis
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=your_jwt_secret_key_here
     ports:
       - '4005:4000'
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   api-gateway:
     build: ./api-gateway
+    restart: always
     environment:
       - NODE_ENV=development
       - USER_SERVICE_URL=http://user-service:4000
@@ -144,24 +191,4 @@ services:
       - driver-service
       - booking-service
       - payment-service
-      - notification-service
-
-  frontend:
-    build: ./frontend
-    environment:
-      - NODE_ENV=development
-      - REACT_APP_API_GATEWAY_URL=http://localhost:8080
-    ports:
-      - '3000:3000'
-    depends_on:
-      - api-gateway
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - '80:80'
-    volumes:
-      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - frontend
-      - api-gateway 
+      - notification-service 
